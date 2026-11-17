@@ -1,4 +1,4 @@
-import { pack, vault } from "./vault.js";
+import { pack, vault } from "./vault.js?access=1";
 
 const OWNER = "aaron";
 const endpoint = "https://jlasqtrtugmpoodottpb.supabase.co/functions/v1/ibdps-access";

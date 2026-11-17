@@ -1,5 +1,5 @@
-import { hexDigest, openGrant, pack, readKey, sealGrant, vault } from "./vault.js";
-import { access, describeDevice, devicePublicKey, isOwner, requestIdentity } from "./access.js";
+import { hexDigest, openGrant, pack, readKey, sealGrant, vault } from "./vault.js?access=1";
+import { access, describeDevice, devicePublicKey, isOwner, requestIdentity } from "./access.js?access=1";
 
 const find = selector => document.querySelector(selector);
 const login = find("#login");
@@ -36,17 +36,18 @@ function show(session) {
 }
 
 async function workerReady() {
-  if (navigator.serviceWorker.controller) return;
-  await new Promise(resolve => {
-    const listener = () => {
-      if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.removeEventListener("controllerchange", listener);
-        resolve();
-      }
-    };
-    navigator.serviceWorker.addEventListener("controllerchange", listener);
-    listener();
-  });
+  await registration;
+  await navigator.serviceWorker.ready;
+  if (navigator.serviceWorker.controller) {
+    sessionStorage.removeItem("ibdps-attach-worker");
+    return true;
+  }
+  if (sessionStorage.getItem("ibdps-attach-worker")) {
+    throw new Error("Reload this page to start the portal.");
+  }
+  sessionStorage.setItem("ibdps-attach-worker", "1");
+  location.replace("/");
+  return false;
 }
 
 const registration = navigator.serviceWorker.register("/sw.js", { type: "module", updateViaCache: "none" });
@@ -104,15 +105,15 @@ async function signIn(name, password, grant) {
   if (name === "aaron" && raw.byteLength === 64) {
     session.admin = { archiveKey: raw.slice(0, 32), token: pack(raw.slice(32)) };
   }
-  await registration;
-  await workerReady();
   await vault("put", "session", session);
+  if (!await workerReady()) return;
   form.reset();
   show(session);
 }
 
 async function findGrant(name) {
-  const saved = await fetch(`/grants/${await hexDigest(name)}.json`, { cache: "no-store" });
+  const path = `/grants/${await hexDigest(name)}.json`;
+  const saved = await fetch(name === "aaron" ? path + "?access=1" : path, { cache: "no-store" });
   if (saved.ok) return saved.json();
   if (name === "aaron") throw new Error();
   const identity = await vault("get", "request");
@@ -277,9 +278,11 @@ setInterval(() => {
 
 const currentSession = await vault("get", "session").catch(() => null);
 if (currentSession?.expires > Date.now()) {
-  await registration;
-  await workerReady();
-  show(currentSession);
+  try {
+    if (await workerReady()) show(currentSession);
+  } catch (error) {
+    status.textContent = error.message;
+  }
 } else {
   show(null);
 }

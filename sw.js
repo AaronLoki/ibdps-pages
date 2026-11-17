@@ -1,4 +1,4 @@
-import { decode, hexDigest, vault } from "./vault.js";
+import { decode, hexDigest, vault } from "./vault.js?access=1";
 
 const mime = {
   html: "text/html; charset=utf-8", pdf: "text/html; charset=utf-8",
