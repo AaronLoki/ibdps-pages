@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow, noarchive">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; worker-src 'self'; style-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; worker-src 'self'; style-src 'self'; connect-src 'self' https://jlasqtrtugmpoodottpb.supabase.co; form-action 'none'; base-uri 'none'">
   <title>Spanish ab initio</title>
   <link rel="stylesheet" href="/portal.css">
   <script type="module" src="/app.js"></script>
@@ -23,24 +23,37 @@
       </form>
       <p role="status" id="status"></p>
       <button class="quiet" id="request-access" type="button">Request access</button>
-      <div id="setup" hidden>
-        <p>Send this setup code to the site owner for approval.</p>
-        <label for="setup-code">Setup code</label>
-        <input id="setup-code" readonly spellcheck="false">
-      </div>
+      <p id="request-status" role="status"></p>
+      <form id="register" hidden>
+        <label for="register-username">Choose a username</label>
+        <input id="register-username" name="username" autocomplete="username" maxlength="64" required>
+        <label for="register-password">Choose a password</label>
+        <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="80" required>
+        <button class="primary" type="submit">Register</button>
+      </form>
       <noscript>Enable JavaScript to use the portal.</noscript>
     </section>
   </main>
   <section id="home" hidden>
     <header class="top">
       <a class="wordmark" href="/">Spanish ab initio</a>
-      <button class="quiet" type="button" id="sign-out">Sign out</button>
+      <div class="top-actions">
+        <button class="quiet" type="button" id="show-admin" hidden>Admin</button>
+        <button class="quiet" type="button" id="sign-out">Sign out</button>
+      </div>
     </header>
-    <main class="hub">
+    <main class="hub" id="resources">
       <h1>Study resources</h1>
       <nav class="resources" aria-label="Study resources">
         <a class="resource" href="/languageseven/"><span>LanguageSeven</span><span aria-hidden="true">↗</span></a>
       </nav>
+    </main>
+    <main class="hub" id="admin" hidden>
+      <button class="quiet admin-back" type="button" id="close-admin">Back to resources</button>
+      <h1 tabindex="-1">Access requests</h1>
+      <button class="quiet" type="button" id="enable-notifications" hidden>Enable browser notifications</button>
+      <p id="admin-status" role="status">Loading requests…</p>
+      <div id="request-list"></div>
     </main>
   </section>
 </body>

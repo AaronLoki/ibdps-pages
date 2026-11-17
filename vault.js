@@ -16,7 +16,9 @@ export async function vault(operation, id, value) {
     return await new Promise((resolve, reject) => {
       const tx = db.transaction("keys", readOnly ? "readonly" : "readwrite");
       const store = tx.objectStore("keys");
-      const request = operation === "put" ? store.put(value, id) : store[operation](id);
+      const request = operation === "put" || operation === "add"
+        ? store[operation](value, id)
+        : store[operation](id);
       tx.oncomplete = () => resolve(request.result);
       tx.onabort = () => reject(tx.error);
     });
@@ -46,17 +48,38 @@ export function decode(key, encrypted, label) {
   }, key, encrypted.slice(12));
 }
 
-export async function unlock(device, grant, username, password) {
-  const curve = { name: "ECDH", namedCurve: "P-256" };
-  const peer = await crypto.subtle.importKey("raw", unpack(grant.peer), curve, false, []);
-  const shared = await crypto.subtle.deriveBits({ name: "ECDH", public: peer }, device.privateKey, 256);
+const curve = { name: "ECDH", namedCurve: "P-256" };
+
+async function wrappingKey(privateKey, peerCode, salt, usage) {
+  const peer = await crypto.subtle.importKey("raw", unpack(peerCode), curve, false, []);
+  const shared = await crypto.subtle.deriveBits({ name: "ECDH", public: peer }, privateKey, 256);
   const material = await crypto.subtle.importKey("raw", shared, "HKDF", false, ["deriveKey"]);
-  const wrappingKey = await crypto.subtle.deriveKey({
+  return crypto.subtle.deriveKey({
     name: "HKDF",
     hash: "SHA-256",
-    salt: bytes.encode(password),
+    salt: bytes.encode(salt),
     info: bytes.encode("ibdps-language-access-v1"),
-  }, material, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
-  const courseKey = await decode(wrappingKey, unpack(grant.data), username);
-  return crypto.subtle.importKey("raw", courseKey, "AES-GCM", false, ["decrypt"]);
+  }, material, { name: "AES-GCM", length: 256 }, false, [usage]);
+}
+
+export async function openGrant(device, grant, label, salt) {
+  const key = await wrappingKey(device.privateKey, grant.peer, salt, "decrypt");
+  return decode(key, unpack(grant.data), label);
+}
+
+export async function sealGrant(recipient, raw, label, salt) {
+  const sender = await crypto.subtle.generateKey(curve, false, ["deriveBits"]);
+  const key = await wrappingKey(sender.privateKey, recipient, salt, "encrypt");
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const data = new Uint8Array(await crypto.subtle.encrypt({
+    name: "AES-GCM", iv, additionalData: bytes.encode(label),
+  }, key, raw));
+  const result = new Uint8Array(iv.length + data.length);
+  result.set(iv);
+  result.set(data, iv.length);
+  return { peer: pack(await crypto.subtle.exportKey("raw", sender.publicKey)), data: pack(result) };
+}
+
+export function readKey(raw) {
+  return crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["decrypt"]);
 }

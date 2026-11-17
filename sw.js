@@ -17,6 +17,17 @@ self.addEventListener("fetch", event => {
   }
 });
 
+self.addEventListener("notificationclick", event => {
+  if (event.notification.tag !== "ibdps-access") return;
+  event.notification.close();
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const portal = windows.find(window => new URL(window.url).pathname === "/");
+    if (portal) await portal.focus();
+    else await self.clients.openWindow("/");
+  })());
+});
+
 async function openResource(request, url) {
   if (request.method !== "GET" && request.method !== "HEAD") {
     return new Response(null, { status: 405, headers: { Allow: "GET, HEAD" } });

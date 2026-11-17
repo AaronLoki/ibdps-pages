@@ -69,3 +69,17 @@ input + label { margin-top: 12px; }
 @media print { .protected { display: none; } }
 
 [hidden] { display: none !important; }
+
+.top-actions { display: flex; gap: 8px; align-items: center; }
+.admin-back { margin-bottom: 27px; }
+
+.request-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-bottom: 1px solid #a2a2a2;
+}
+.request-row time { display: block; margin-top: 6px; font-size: .9rem; }
+#register { margin-top: 24px; }
