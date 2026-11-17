@@ -1,0 +1,71 @@
+:root {
+  color-scheme: light;
+  font-family: "Instrument Sans", Arial, sans-serif;
+  color: #161616;
+  background: #fff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+a { color: inherit; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid #161616; outline-offset: 4px; }
+
+.top {
+  min-height: 76px;
+  padding: 16px clamp(24px, 5vw, 76px);
+  border-bottom: 1px solid #d2d2d2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.wordmark { font-size: .9rem; font-weight: 700; text-decoration: none; letter-spacing: -.015em; }
+.quiet { background: #fff; border: 1px solid #a2a2a2; padding: 9px 14px; }
+.quiet:hover { border-color: #161616; }
+
+.hub {
+  width: min(768px, calc(100% - 48px));
+  margin: clamp(72px, 15vh, 166px) auto 64px;
+}
+h1 {
+  font-size: clamp(2.4rem, 6vw, 4.75rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -.064em;
+  margin: 0 0 43px;
+}
+.resources { border-top: 1px solid #161616; }
+.resource {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 26px 4px;
+  gap: 16px;
+  border-bottom: 1px solid #a2a2a2;
+  font-size: clamp(1.2rem, 3vw, 1.65rem);
+  text-decoration: none;
+}
+.resource:hover { color: #fff; background: #161616; padding-inline: 13px; }
+.resource > span:last-child { font-size: 1.25rem; }
+
+.login { min-height: 100svh; display: grid; place-items: center; padding: 32px 24px; }
+.login-panel { width: min(100%, 396px); }
+.login-panel .wordmark { margin: 0 0 26px; }
+.login-panel h1 { margin-bottom: 32px; }
+.login form { display: grid; gap: 10px; }
+label { font-size: .9rem; font-weight: 600; }
+input { min-width: 0; width: 100%; padding: 13px; border: 1px solid #6c6c6c; border-radius: 0; }
+input + label { margin-top: 12px; }
+.primary { margin-top: 17px; color: #fff; background: #161616; border: 1px solid #161616; padding: 14px; }
+.primary:hover { background: #353535; }
+.error { border-left: 2px solid #161616; padding-left: 12px; margin: 0 0 24px; line-height: 1.45; }
+
+.reader { width: min(960px, calc(100% - 40px)); margin: 40px auto 70px; }
+.reader h1 { font-size: clamp(1.75rem, 4vw, 2.75rem); margin-bottom: 24px; overflow-wrap: anywhere; }
+.reader img, .reader video { display: block; width: 100%; height: auto; margin: 0 0 15px; }
+.reader img { border: 1px solid #d2d2d2; }
+.reader audio { width: min(100%, 520px); }
+@media print { .protected { display: none; } }
+
+[hidden] { display: none !important; }

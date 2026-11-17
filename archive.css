@@ -1,0 +1,17 @@
+.portal-return {
+  position: fixed;
+  bottom: 14px;
+  left: 14px;
+  z-index: 100001;
+  padding: 8px 11px;
+  border: 1px solid #111;
+  background: #fff;
+  color: #111 !important;
+  font: 600 13px/1.15 Arial, sans-serif;
+  text-decoration: none !important;
+}
+.portal-return:hover, .portal-return:focus-visible {
+  color: #fff !important;
+  background: #111;
+}
+@media print { body { display: none !important; } }

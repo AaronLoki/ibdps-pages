@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; worker-src 'self'; style-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+  <title>Spanish ab initio</title>
+  <link rel="stylesheet" href="/portal.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <main class="login" id="login">
+    <section class="login-panel">
+      <p class="wordmark">Spanish ab initio</p>
+      <h1>Sign in</h1>
+      <form id="sign-in" method="post">
+        <label for="username">Username</label>
+        <input id="username" name="username" autocomplete="username" maxlength="64" required>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" maxlength="80" required>
+        <button class="primary" type="submit">Sign in</button>
+      </form>
+      <p role="status" id="status"></p>
+      <button class="quiet" id="request-access" type="button">Request access</button>
+      <div id="setup" hidden>
+        <p>Send this setup code to the site owner for approval.</p>
+        <label for="setup-code">Setup code</label>
+        <input id="setup-code" readonly spellcheck="false">
+      </div>
+      <noscript>Enable JavaScript to use the portal.</noscript>
+    </section>
+  </main>
+  <section id="home" hidden>
+    <header class="top">
+      <a class="wordmark" href="/">Spanish ab initio</a>
+      <button class="quiet" type="button" id="sign-out">Sign out</button>
+    </header>
+    <main class="hub">
+      <h1>Study resources</h1>
+      <nav class="resources" aria-label="Study resources">
+        <a class="resource" href="/languageseven/"><span>LanguageSeven</span><span aria-hidden="true">↗</span></a>
+      </nav>
+    </main>
+  </section>
+</body>
+</html>
