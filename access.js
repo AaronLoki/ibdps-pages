@@ -62,6 +62,7 @@ export async function access(action, fields) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action, ...fields }),
     cache: "no-store",
+    keepalive: action === "record-activity",
   });
   const result = await response.json();
   if (!response.ok) {
@@ -76,4 +77,14 @@ export function requestIdentity() {
   return getOrCreate("request", () => ({
     id: crypto.randomUUID(), token: pack(crypto.getRandomValues(new Uint8Array(32))),
   }));
+}
+
+export async function recordActivity(session, kind, resource) {
+  if (!session?.username || session.username === OWNER || session.expires <= Date.now()) return;
+  try {
+    const identity = await vault("get", "request");
+    if (identity) await access("record-activity", { ...identity, username: session.username, kind, resource });
+  } catch {
+    // Activity reporting must not interrupt sign-in or access to study materials.
+  }
 }

@@ -1,4 +1,5 @@
 import { decode, hexDigest, vault } from "./vault.js?access=1";
+import { recordActivity } from "./access.js?activity=1";
 
 const mime = {
   html: "text/html; charset=utf-8", pdf: "text/html; charset=utf-8",
@@ -13,7 +14,12 @@ self.addEventListener("activate", event => event.waitUntil(self.clients.claim())
 self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (url.origin === self.location.origin && (url.pathname === "/languageseven" || url.pathname.startsWith("/languageseven/"))) {
-    event.respondWith(openResource(event.request, url).catch(() => new Response("Resource unavailable", { status: 404 })));
+    let activity;
+    const response = openResource(event.request, url, (session, type, path) => {
+      activity = recordActivity(session, type, path);
+    }).catch(() => new Response("Resource unavailable", { status: 404 }));
+    event.respondWith(response);
+    event.waitUntil(response.then(() => activity));
   }
 });
 
@@ -28,7 +34,7 @@ self.addEventListener("notificationclick", event => {
   })());
 });
 
-async function openResource(request, url) {
+async function openResource(request, url, record) {
   if (request.method !== "GET" && request.method !== "HEAD") {
     return new Response(null, { status: 405, headers: { Allow: "GET, HEAD" } });
   }
@@ -73,10 +79,16 @@ async function openResource(request, url) {
       headers.set("Content-Range", `bytes */${size}`);
       return new Response(null, { status: 416, headers });
     }
+    if (request.method === "GET") record(session, "audio", path);
     headers.set("Accept-Ranges", "bytes");
     headers.set("Content-Range", `bytes ${start}-${end}/${size}`);
     headers.set("Content-Length", String(end - start + 1));
     return new Response(request.method === "HEAD" ? null : plain.slice(start, end + 1), { status: 206, headers });
+  }
+  if (request.method === "GET") {
+    if (type.startsWith("audio/")) record(session, "audio", path);
+    else if (request.mode === "navigate" && format === "pdf") record(session, "worksheet", path);
+    else if (request.mode === "navigate" && format === "html") record(session, "page", path);
   }
   headers.set("Content-Length", String(plain.byteLength));
   return new Response(request.method === "HEAD" ? null : plain, { headers });

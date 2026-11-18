@@ -83,3 +83,13 @@ input + label { margin-top: 12px; }
 }
 .request-row time { display: block; margin-top: 6px; font-size: .9rem; }
 #register { margin-top: 24px; }
+
+.activity-notice { color: #494949; font-size: .875rem; line-height: 1.5; }
+.activity-section { margin-top: 42px; padding-top: 20px; border-top: 1px solid #a2a2a2; }
+.activity-section select { min-width: 0; max-width: 210px; padding: 8px; border: 1px solid #a2a2a2; font: inherit; }
+.activity-row { display: grid; grid-template-columns: minmax(135px, 1fr) minmax(120px, 1fr) 2fr; gap: 12px; align-items: start; padding: 14px 0; border-bottom: 1px solid #d2d2d2; }
+.activity-row span { overflow-wrap: anywhere; }
+#activity-earlier { margin-top: 14px; }
+@media (max-width: 620px) {
+  .activity-row { grid-template-columns: 1fr; gap: 5px; }
+}

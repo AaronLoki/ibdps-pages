@@ -1,5 +1,5 @@
 import { hexDigest, openGrant, pack, readKey, sealGrant, vault } from "./vault.js?access=1";
-import { access, describeDevice, devicePublicKey, isOwner, requestIdentity } from "./access.js?access=1";
+import { access, describeDevice, devicePublicKey, isOwner, recordActivity, requestIdentity } from "./access.js?activity=1";
 
 const find = selector => document.querySelector(selector);
 const login = find("#login");
@@ -31,8 +31,16 @@ function show(session) {
   admin.hidden = true;
   resources.hidden = false;
   knownRequests = undefined;
+  if (!isOwner(session)) {
+    ++activitySequence;
+    activityUser.replaceChildren();
+    activityHistory.replaceChildren();
+    activityStatus.textContent = "";
+    earlier.hidden = true;
+  }
   if (isOwner(session)) void refreshAdmin();
   else if (!session) void refreshRequest();
+  else void recordActivity(session, "page", "/");
 }
 
 async function workerReady() {
@@ -106,6 +114,7 @@ async function signIn(name, password, grant) {
     session.admin = { archiveKey: raw.slice(0, 32), token: pack(raw.slice(32)) };
   }
   await vault("put", "session", session);
+  void recordActivity(session, "sign_in", "/");
   if (!await workerReady()) return;
   form.reset();
   show(session);
@@ -248,6 +257,7 @@ adminButton.addEventListener("click", () => {
   notifyButton.hidden = !globalThis.Notification || Notification.permission !== "default";
   admin.querySelector("h1").focus();
   void refreshAdmin();
+  void refreshUsers();
 });
 
 notifyButton.addEventListener("click", async () => {
@@ -275,6 +285,89 @@ setInterval(() => {
     void refreshRequest();
   }
 }, 20_000);
+
+const activityUser = find("#activity-user");
+const activityStatus = find("#activity-status");
+const activityHistory = find("#activity-history");
+const earlier = find("#activity-earlier");
+const activityLabels = { sign_in: "Signed in", page: "Visited page", worksheet: "Opened worksheet", audio: "Requested audio" };
+let activitySequence = 0;
+let activityCursor;
+
+function displayResource(resource) {
+  if (resource === "/") return "Study portal";
+  if (resource === "/languageseven/index.html") return "LanguageSeven home";
+  return resource.split("/").at(-1).replace(/^[a-f0-9]{12,}-/, "");
+}
+
+function renderEvents(events) {
+  for (const event of events) {
+    const row = document.createElement("article");
+    row.className = "activity-row";
+    const timestamp = document.createElement("time");
+    timestamp.dateTime = event.occurred_at;
+    timestamp.textContent = date.format(new Date(event.occurred_at));
+    const action = document.createElement("strong");
+    action.textContent = activityLabels[event.kind] || event.kind;
+    const resource = document.createElement("span");
+    resource.textContent = displayResource(event.resource);
+    resource.title = event.resource;
+    row.append(timestamp, action, resource);
+    activityHistory.append(row);
+  }
+}
+
+async function refreshActivity(append = false) {
+  const session = activeSession;
+  if (!isOwner(session) || !activityUser.value) return;
+  const sequence = ++activitySequence;
+  earlier.hidden = true;
+  activityStatus.textContent = "Loading activity…";
+  if (!append) activityHistory.replaceChildren();
+  try {
+    const result = await access("activity", {
+      owner: session.admin.token, id: activityUser.value, ...(append ? { before: activityCursor } : {}),
+    });
+    if (activeSession !== session || activitySequence !== sequence) return;
+    renderEvents(result.events);
+    activityCursor = String(result.events.at(-1)?.id || "");
+    earlier.hidden = !result.more;
+    activityStatus.textContent = activityHistory.children.length ? "" : "No activity recorded for this account yet.";
+  } catch {
+    if (activitySequence === sequence) {
+      activityStatus.textContent = "Activity could not be loaded.";
+      earlier.hidden = !append;
+    }
+  }
+}
+
+async function refreshUsers() {
+  const session = activeSession;
+  if (!isOwner(session)) return;
+  const sequence = ++activitySequence;
+  activityUser.disabled = true;
+  earlier.hidden = true;
+  activityStatus.textContent = "Loading users…";
+  try {
+    const { users } = await access("users", { owner: session.admin.token });
+    if (activeSession !== session || sequence !== activitySequence) return;
+    const selected = activityUser.value;
+    activityUser.replaceChildren(...users.map(user => new Option(user.username, user.id)));
+    if (users.some(user => user.id === selected)) activityUser.value = selected;
+    activityUser.disabled = users.length === 0;
+    if (users.length) await refreshActivity();
+    else {
+      activityHistory.replaceChildren();
+      activityStatus.textContent = "No registered users.";
+    }
+  } catch {
+    if (activeSession === session && sequence === activitySequence) activityStatus.textContent = "Users could not be loaded.";
+  }
+}
+
+find("#activity-refresh").addEventListener("click", refreshUsers);
+activityUser.addEventListener("change", () => refreshActivity());
+earlier.addEventListener("click", () => refreshActivity(true));
 
 const currentSession = await vault("get", "session").catch(() => null);
 if (currentSession?.expires > Date.now()) {

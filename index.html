@@ -6,8 +6,8 @@
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; worker-src 'self'; style-src 'self'; connect-src 'self' https://jlasqtrtugmpoodottpb.supabase.co; form-action 'none'; base-uri 'none'">
   <title>Spanish ab initio</title>
-  <link rel="stylesheet" href="/portal.css?access=1">
-  <script type="module" src="/app.js?access=1"></script>
+  <link rel="stylesheet" href="/portal.css?activity=1">
+  <script type="module" src="/app.js?activity=1"></script>
 </head>
 <body>
   <main class="login" id="login">
@@ -22,6 +22,7 @@
         <button class="primary" type="submit">Sign in</button>
       </form>
       <p role="status" id="status"></p>
+      <p class="activity-notice">The site owner can see sign-in times and the study pages and resources opened on this site.</p>
       <button class="quiet" id="request-access" type="button">Request access</button>
       <p id="request-status" role="status"></p>
       <form id="register" hidden>
@@ -54,6 +55,17 @@
       <button class="quiet" type="button" id="enable-notifications" hidden>Enable browser notifications</button>
       <p id="admin-status" role="status">Loading requests…</p>
       <div id="request-list"></div>
+      <section class="activity-section" aria-labelledby="activity-title">
+        <h2 id="activity-title">Users and activity</h2>
+        <div class="top-actions">
+          <label for="activity-user">Username</label>
+          <select id="activity-user" disabled></select>
+          <button class="quiet" id="activity-refresh" type="button">Refresh</button>
+        </div>
+        <p id="activity-status" role="status"></p>
+        <div id="activity-history" class="activity-history"></div>
+        <button class="quiet" id="activity-earlier" type="button" hidden>Load earlier</button>
+      </section>
     </main>
   </section>
 </body>
